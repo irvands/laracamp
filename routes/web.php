@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\User\CheckoutController;
+
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,13 +19,13 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
-Route::get('/checkout', function () {
-    return view('checkout');
-})->name('checkout');
+Route::get('/checkout/{camp:slug}', [CheckoutController::class, 'create'])->name('checkout.create');
+Route::post('/checkout/{camp}', [CheckoutController::class, 'store'])->name('checkout.store');
 
-Route::get('/ssuccess-checkout', function () {
-    return view('success_checkout');
-})->name('success_checkout');
+Route::get('/checkout/success', [CheckoutController::class, 'successCheckout'])->name('checkout.success');
+
+
+
 
 Route::get('/dashboard', function () {
     return view('dashboard');
