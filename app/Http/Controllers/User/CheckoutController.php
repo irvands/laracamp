@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Checkout;
 use Illuminate\Http\Request;
 use App\Models\Camp;
+use App\Http\Requests\User\Checkout\Store;
 use Auth;
 
 class CheckoutController extends Controller
@@ -17,11 +18,16 @@ class CheckoutController extends Controller
     }
 
     
-    public function create(Camp $camp)
-    {
-    //    return $camp;
-        $userEmail = Auth::user()->email;
+    public function create(Camp $camp, Request $request)
+    {    
+         //cek apakah user sudah terdaftar di camp yang samas
+        if($camp->isRegistered){
+            $request->session()->flash('error', "You have already registered on {$camp->title} Camp.");
+            
+            return redirect(route('user.dashboard'));
+        }
 
+        $userEmail = Auth::user()->email;
         return view ('checkout.create',[
             'camp'  => $camp,
             'userEmail'    => $userEmail
@@ -29,10 +35,10 @@ class CheckoutController extends Controller
     }
 
     
-    public function store(Request $request, Camp $camp)
+    public function store(Store $request, Camp $camp)
     {
         // return $camp;
-        // return $request->all();
+        return $request->all();
 
         //mapping request data
         $data               =   $request->all();
