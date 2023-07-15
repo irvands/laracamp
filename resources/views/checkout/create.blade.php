@@ -39,7 +39,7 @@
                                 </div>
                                 <div class="mb-4">
                                     <label class="form-label">Email Address</label>
-                                    <input name="text" type="email" class="form-control {{ $errors->has('email') ? 'is-invalid' : '' }}" value="{{$userEmail}}" readonly>
+                                    <input name="email" type="text" class="form-control {{ $errors->has('email') ? 'is-invalid' : '' }}" value="{{$userEmail}}" readonly>
                                     @if($errors->has('email'))
                                         <p class="text-danger">{{ $errors->first('email') }}</p>
                                     @endif
