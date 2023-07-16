@@ -26,25 +26,26 @@ Route::get('/', function () {
 Route::middleware(['auth'])->group(function (){
     
     //checkout routes
-    Route::get('/checkout/success', [CheckoutController::class, 'successCheckout'])->name('checkout.success');
-    Route::get('/checkout/{camp:slug}', [CheckoutController::class, 'create'])->name('checkout.create');
-    Route::post('/checkout/{camp}', [CheckoutController::class, 'store'])->name('checkout.store');
+    Route::get('/checkout/success', [CheckoutController::class, 'successCheckout'])->name('checkout.success')->middleware('ensureUserRole:user');
+    Route::get('/checkout/{camp:slug}', [CheckoutController::class, 'create'])->name('checkout.create')->middleware('ensureUserRole:user');
+    Route::post('/checkout/{camp}', [CheckoutController::class, 'store'])->name('checkout.store')->middleware('ensureUserRole:user');
 
     //user dashboard
     Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('user.dashboard');
     // Route::get('/dashboard/checkout/invoice/{checkout}', [CheckoutController::class, 'invoice'])->name('user.checkout.invoice');
 
-    Route::prefix('/user')->namespace('user')->name('user.')->group(function (){
-        Route::get('/', [UserDashboard::class, 'index'])->name('dashboard');
+    Route::prefix('/user')->namespace('user')->name('user.')->middleware('ensureUserRole:user')->group(function (){
+        Route::get('/dashboard', [UserDashboard::class, 'index'])->name('dashboard');
     });
 
-    Route::prefix('/admin')->namespace('admin')->name('admin.')->group(function (){
-        Route::get('/', [AdminDashboard::class, 'index'])->name('dashboard');
+    Route::prefix('/admin')->namespace('admin')->name('admin.')->middleware('ensureUserRole:admin')->group(function (){
+        Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
+        Route::get('/checkout/confirm', [AdminDashboard::class, 'confirm'])->name('confirm');
     });
 });
 
 
-// Route::get('/dashboard', function () {
+// Route::get('/dashboard', function () { 
 //     return view('dashboard');
 // })->middleware(['auth'])->name('dashboard');
 
