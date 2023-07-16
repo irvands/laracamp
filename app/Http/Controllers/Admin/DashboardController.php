@@ -12,8 +12,9 @@ class DashboardController extends Controller
 {
     public function index(){
         //cara pertama
+
         $checkouts = Checkout::with('Camp')->get();
-        
+        // return $checkouts;
         //cara kedua
         // $checkouts = Checkout::with('Camp')->whereUserId(Auth::id())->get();
 
