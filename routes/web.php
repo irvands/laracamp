@@ -23,6 +23,10 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+//midtrans routes
+Route::get('payment/success', [UserController::class, 'midtransCallback']);
+Route::post('payment/success', [UserController::class, 'midtransCallback']);
+
 
 Route::middleware(['auth'])->group(function (){
     
