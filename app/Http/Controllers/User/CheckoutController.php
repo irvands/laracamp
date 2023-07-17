@@ -147,13 +147,70 @@ class CheckoutController extends Controller
         ];
 
         try {
-            
+
             $paymentUrl = \Midtrans\Snap::createTransaction($params)->redirect_url;
             $checkout->midtrans_url = $paymentUrl;
-            $checkout->save;
+            $checkout->save();
+
+            return $paymentUrl;
 
         } catch (\Throwable $th) {
             return false;
         }
+    }
+
+    public function midtransCallback(Request $request){
+
+        $notif = \Midtrans\Notification();
+
+        $transaction_status = $notif->transaction_status;
+        $fraud  = $notif->fraud_status;
+
+        $checkout_id = explode('-', $notif->order_id)[0];
+        $checkout = Checkout::find($checkout_id);
+
+        if($transaction_status == 'capture'){
+
+            if($fraud == 'challenge'){
+                $checkout->payment_status = 'pending';
+            }else if($fraud == 'accept'){
+                $checkout->payment_status = 'paid';
+            }
+
+        }
+        else if($transaction_status == 'cancel'){
+
+            if($fraud == 'challenge'){
+                $checkout->payment_status = 'failed';
+            }else if($fraud == 'accept'){
+                $checkout->payment_status = 'failed';
+            }
+
+        }
+        else if($transaction_status == 'deny'){
+            
+            $checkout->payment_status = 'failed';
+        
+        }
+        else if($transaction_status == 'settlement'){
+
+            $checkout->payment_status = 'paid';
+            
+        }
+        else if($transaction_status == 'pending'){
+
+            $checkout->payment_status = 'pending';
+        
+        }
+        else if($transaction_status == 'expired'){
+
+            $checkout->payment_status = 'failed';
+            
+        }
+
+        $checkout->save();
+
+        return view('checkout/success');
+
     }
 }
