@@ -6,6 +6,7 @@ use App\Http\Controllers\User\CheckoutController;
 use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\DashboardController as UserDashboard;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
+use App\Http\Controllers\Admin\CheckoutController as AdminCheckout;
 
 /*
 |--------------------------------------------------------------------------
@@ -40,7 +41,7 @@ Route::middleware(['auth'])->group(function (){
 
     Route::prefix('/admin')->namespace('admin')->name('admin.')->middleware('ensureUserRole:admin')->group(function (){
         Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
-        Route::get('/checkout/confirm', [AdminDashboard::class, 'confirm'])->name('confirm');
+        Route::POST('/checkout/{checkout}', [AdminCheckout::class, 'setToPaid'])->name('checkout.setToPaid');
     });
 });
 

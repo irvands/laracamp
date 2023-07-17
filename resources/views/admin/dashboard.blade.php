@@ -13,6 +13,7 @@
                     @include('components.alert')
 
                     <table class="table table-responsive">
+                        @include('components.alert')
                         <thead>
                             <tr>
                                 <td>User</td>
@@ -29,19 +30,23 @@
                             <tr>
                                 <td>{{$checkout->User->name}}</td>
                                 <td>{{$checkout->Camp->title}}</td>
-                                <td>{{$checkout->created_at->format('Y-m-d')}}</td>
+                                <td>{{$checkout->Camp->price}}K</td>
+                                <td>{{$checkout->created_at->format('M d Y')}}</td>
                                 <td>
                                     @if(!$checkout->is_paid)
-                                   false
+                                    <span class="badge bg-warning">Waiting</span>
                                     @else
-                                   true
+                                   <span class="badge bg-success">Paid</span>
                                     @endif
                                 </td>
                                 <td>
-                                    <form action="" method="POST">
+                                    @if(!$checkout->is_paid)
+                                    <form action="{{route('admin.checkout.setToPaid', $checkout->id)}}" method="POST">
                                         @csrf
-                                        <button class="btn btn-primary btn-sm"></button>
+                                        <button class="btn btn-primary btn-sm">Set to paid</button>
                                     </form>
+                                    @endif
+                                    
                                 </td>
                             </tr>
                             @empty
