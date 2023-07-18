@@ -18,6 +18,7 @@
                     @include('components.alert')
                     <tbody>
                         @forelse($checkouts as $checkout)
+                        
                         <tr class="align-middle">
                             <td width="18%">
                                 <img src="{{asset ('/images/item_bootcamp.png')}}" height="120" alt="">
@@ -32,6 +33,14 @@
                             </td>
                             <td>
                                 <strong>{{$checkout->Camp->price}} K</strong>
+                            </td>
+                            <td>
+                                @if($checkout->payment_status == 'waiting')
+                                <button onclick="getSnapToken('{{$checkout->midtrans_snap_token}}')" class="btn btn-primary">
+                                    pay here
+                                </button>
+
+                                @endif
                             </td>
                             <td>
                                 @if($checkout->is_paid)
@@ -59,4 +68,29 @@
             </div>
         </div>
     </section>
+
+    
+
+    <script>
+        function getSnapToken(snapToken) {
+            window.snap.pay(snapToken, {
+          onSuccess: function(result){
+            /* You may add your own implementation here */
+            alert("payment success!"); console.log(result);
+          },
+          onPending: function(result){
+            /* You may add your own implementation here */
+            alert("wating your payment!"); console.log(result);
+          },
+          onError: function(result){
+            /* You may add your own implementation here */
+            alert("payment failed!"); console.log(result);
+          },
+          onClose: function(){
+            /* You may add your own implementation here */
+            alert('you closed the popup without finishing the payment');
+          }
+        })
+        }
+    </script>
 @endsection

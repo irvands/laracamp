@@ -50,6 +50,9 @@ Route::middleware(['auth'])->group(function (){
 });
 
 
+Route::get('/debug', [CheckoutController::class, 'debug']);
+
+
 // Route::get('/dashboard', function () { 
 //     return view('dashboard');
 // })->middleware(['auth'])->name('dashboard');

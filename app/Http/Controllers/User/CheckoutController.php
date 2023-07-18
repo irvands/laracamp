@@ -63,10 +63,13 @@ class CheckoutController extends Controller
         $user->occupation = $data['occupation'];
         $user->save();
 
+        
+
         //store data checkout
         $checkout  = Checkout::create($data);
+        $this->getSnapToken($checkout);
         
-        $this->getSnapRedirect($checkout);
+        
         
         Mail::to(Auth::user()->email)->send(new AfterCheckout($checkout));
 
@@ -99,17 +102,15 @@ class CheckoutController extends Controller
         return view('checkout.success');
     }
 
-    // public function invoice(Checkout $checkout){
-    //     return $checkout;
-    // }
 
-    public function getSnapRedirect(Checkout $checkout){
+    public function getSnapToken(Checkout $checkout){
+
         $orderID = $checkout->id.'-'.Str::random(5);
         $price = $checkout->Camp->price * 1000;
 
         $checkout->midtrans_booking_code = $orderID;
 
-        $transcation_details[] = [
+        $transcation_details = [
             'order_id' => $orderID,
             'gross_amount'  => $price
         ];
@@ -121,7 +122,7 @@ class CheckoutController extends Controller
             'name' => "Payment for {$checkout->Camp->title} Camp"   
         ];
 
-        $userData[] = [
+        $userData = [
             'first_name' => $checkout->User->name,
             'last_name' => "",
             'address' => $checkout->User->address,
@@ -131,7 +132,7 @@ class CheckoutController extends Controller
             'country_code' => "IDN",
         ];
 
-        $customer_details[] = [
+        $customer_details = [
             'first_name' => $checkout->User->name,
             'last_name' => "",
             'email' => $checkout->User->email,
@@ -140,21 +141,23 @@ class CheckoutController extends Controller
             'shipping_address' => $userData
         ];
 
-        $midtrans_params[] = [
+        $midtrans_params = [
             'transaction_details' => $transcation_details,
             'customer_details' => $customer_details,
             'item_details'  =>  $item_details
         ];
 
+        // return $midtrans_params;
+
         try {
 
-            $paymentUrl = \Midtrans\Snap::createTransaction($params)->redirect_url;
-            $checkout->midtrans_url = $paymentUrl;
+            $snapToken = \Midtrans\Snap::getSnapToken($midtrans_params);
+            $checkout->midtrans_snap_token = $snapToken;
             $checkout->save();
 
-            return $paymentUrl;
+            return $snapToken;
 
-        } catch (\Throwable $th) {
+        } catch (Exception $e) {
             return false;
         }
     }
@@ -213,4 +216,28 @@ class CheckoutController extends Controller
         return view('checkout/success');
 
     }
+
+    // public function debug(){
+
+    //     $transcation_details = [
+    //         'order_id' => '2-kdfkd',
+    //         'gross_amount'  => 100000
+    //     ];
+
+    //     $item_details[] = [
+    //         'id' => '2-kdfkd',
+    //         'price' => 100000,
+    //         'quantity' => 1,
+    //         'name' => "Payment for dsds Camp"   
+    //     ];
+
+
+
+    //     $midtrans_params[] = [
+    //         'transaction_details' => $transcation_details,
+    //         'item_details'  =>  $item_details
+    //     ];
+
+    //     return $midtrans_params;
+    // }
 }
