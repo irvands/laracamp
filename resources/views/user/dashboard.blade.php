@@ -39,11 +39,10 @@
                                 <button onclick="getSnapToken('{{$checkout->midtrans_snap_token}}')" class="btn btn-primary">
                                     pay here
                                 </button>
-
                                 @endif
                             </td>
                             <td>
-                                @if($checkout->is_paid)
+                                @if($checkout->payment_status ==  'paid')
                                 <strong class="text-success">Payment Success</strong>
                                 @else
                                 <strong>Waiting for Payment</strong>
