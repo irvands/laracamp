@@ -7,13 +7,21 @@ use App\Models\Checkout;
 use Illuminate\Http\Request;
 use App\Models\Camp;
 use App\Http\Requests\User\Checkout\Store;
+use App\Mail\Checkout\AfterCheckout;
 use Auth;
 use Mail;
-use App\Mail\Checkout\AfterCheckout;
+use Midtrans;
+use Str;
+
 
 class CheckoutController extends Controller
 {
-    
+    public function __construct(){
+        Midtrans\config::$serverKey = env('MIDTRANS_SERVERKEY');
+        Midtrans\config::$isProduction = env('MIDTRANS_IS_PRODUCTION');
+        Midtrans\config::$isSanitized = env('MIDTRANS_IS_SANITIZED');
+        Midtrans\config::$is3ds = env('MIDTRANS_IS_3DS');
+    }
     public function index()
     {
         return view ('checkout.create');
@@ -55,8 +63,14 @@ class CheckoutController extends Controller
         $user->occupation = $data['occupation'];
         $user->save();
 
+        
+
         //store data checkout
         $checkout  = Checkout::create($data);
+        $this->getSnapToken($checkout);
+        
+        
+        
         Mail::to(Auth::user()->email)->send(new AfterCheckout($checkout));
 
         return redirect(route('checkout.success'));
@@ -88,7 +102,123 @@ class CheckoutController extends Controller
         return view('checkout.success');
     }
 
-    // public function invoice(Checkout $checkout){
-    //     return $checkout;
-    // }
+
+    public function getSnapToken(Checkout $checkout){
+
+        $orderID = $checkout->id.'-'.Str::random(5);
+        $price = $checkout->Camp->price * 1000;
+
+        $checkout->midtrans_booking_code = $orderID;
+
+        $transcation_details = [
+            'order_id' => $orderID,
+            'gross_amount'  => $price
+        ];
+
+        $item_details[] = [
+            'id' => $orderID,
+            'price' => $price,
+            'quantity' => 1,
+            'name' => "Payment for {$checkout->Camp->title} Camp"   
+        ];
+
+        $userData = [
+            'first_name' => $checkout->User->name,
+            'last_name' => "",
+            'address' => $checkout->User->address,
+            'city' => "",
+            'postal_code' => "",
+            'phone' => $checkout->User->phone,
+            'country_code' => "IDN",
+        ];
+
+        $customer_details = [
+            'first_name' => $checkout->User->name,
+            'last_name' => "",
+            'email' => $checkout->User->email,
+            'phone' => $checkout->User->phone,
+            'billing_address' => $userData,
+            'shipping_address' => $userData
+        ];
+
+        $midtrans_params = [
+            'transaction_details' => $transcation_details,
+            'customer_details' => $customer_details,
+            'item_details'  =>  $item_details
+        ];
+
+        // return $midtrans_params;
+
+        try {
+
+            $snapToken = \Midtrans\Snap::getSnapToken($midtrans_params);
+            $checkout->midtrans_snap_token = $snapToken;
+            $checkout->save();
+
+            return $snapToken;
+
+        } catch (Exception $e) {
+            return false;
+        }
+    }
+
+    public function midtransCallback(Request $request){
+
+        $notif = $request->method() == 'POST' ? new Midtrans\Notification() : Midtrans\Transaction::status($request->order_id);
+
+        $transaction_status = $notif->transaction_status;
+        $fraud  = $notif->fraud_status;
+
+        $checkout_id = explode('-', $notif->order_id)[0];
+        $checkout = Checkout::find($checkout_id);
+
+        if($transaction_status == 'capture'){
+
+            if($fraud == 'challenge'){
+                $checkout->payment_status = 'pending';
+            }else if($fraud == 'accept'){
+                $checkout->payment_status = 'paid';
+            }
+
+        }
+        else if($transaction_status == 'cancel'){
+
+            if($fraud == 'challenge'){
+                $checkout->payment_status = 'failed';
+            }else if($fraud == 'accept'){
+                $checkout->payment_status = 'failed';
+            }
+
+        }
+        else if($transaction_status == 'deny'){
+            
+            $checkout->payment_status = 'failed';
+        
+        }
+        else if($transaction_status == 'settlement'){
+
+            $checkout->payment_status = 'paid';
+            
+        }
+        else if($transaction_status == 'pending'){
+
+            $checkout->payment_status = 'pending';
+        
+        }
+        else if($transaction_status == 'expired'){
+
+            $checkout->payment_status = 'failed';
+            
+        }
+
+        $checkout->save();
+
+
+    }
+
+    public function invoice(Checkout $checkout){
+        $checkout = Checkout::with('Camp')->with('User')->find($checkout->id);
+
+        return view('checkout.invoice',['checkout' => $checkout]);
+    }
 }

@@ -23,6 +23,11 @@ Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
 
+//midtrans routes
+Route::get('/payment/success', [CheckoutController::class, 'midtransCallback']);
+Route::post('/payment/success', [CheckoutController::class, 'midtransCallback']);
+Route::get('/invoice/{checkout}', [CheckoutController::class, 'invoice'])->name('invoice');
+
 
 Route::middleware(['auth'])->group(function (){
     
@@ -44,6 +49,9 @@ Route::middleware(['auth'])->group(function (){
         Route::POST('/checkout/{checkout}', [AdminCheckout::class, 'setToPaid'])->name('checkout.setToPaid');
     });
 });
+
+
+Route::get('/debug', [CheckoutController::class, 'debug']);
 
 
 // Route::get('/dashboard', function () { 
