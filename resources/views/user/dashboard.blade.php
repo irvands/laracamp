@@ -36,7 +36,7 @@
                             </td>
                             <td>
                                 @if($checkout->payment_status == 'waiting')
-                                <button onclick="getSnapToken('{{$checkout->midtrans_snap_token}}')" class="btn btn-primary">
+                                <button onclick="getSnapToken(['{{$checkout->midtrans_snap_token}}'],['{{$checkout->id}}'])" class="btn btn-primary">
                                     pay here
                                 </button>
                                 @endif
@@ -71,24 +71,29 @@
     
 
     <script>
-        function getSnapToken(snapToken) {
-            window.snap.pay(snapToken, {
-          onSuccess: function(result){
-            /* You may add your own implementation here */
-            alert("payment success!"); console.log(result);
-          },
-          onPending: function(result){
-            /* You may add your own implementation here */
-            alert("wating your payment!"); console.log(result);
-          },
-          onError: function(result){
-            /* You may add your own implementation here */
-            alert("payment failed!"); console.log(result);
-          },
-          onClose: function(){
-            /* You may add your own implementation here */
+
+        function getSnapToken(snapToken, checkoutId) {
+
+        window.snap.pay(snapToken.toString(), {
+            onSuccess: function(result){
+                   
+            window.location.href = '/invoice/'+checkoutId; 
+            console.log(result);
+        },
+        onPending: function(result){
+            
+            alert("wating your payment!");
+            console.log(result);
+        },
+        onError: function(result){
+            
+            alert("payment failed!");
+            console.log(result);
+        },
+        onClose: function(){
+           
             alert('you closed the popup without finishing the payment');
-          }
+        }
         })
         }
     </script>

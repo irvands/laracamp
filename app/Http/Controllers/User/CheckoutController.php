@@ -213,31 +213,12 @@ class CheckoutController extends Controller
 
         $checkout->save();
 
-        return view('checkout/success');
 
     }
 
-    // public function debug(){
+    public function invoice(Checkout $checkout){
+        $checkout = Checkout::with('Camp')->with('User')->find($checkout->id);
 
-    //     $transcation_details = [
-    //         'order_id' => '2-kdfkd',
-    //         'gross_amount'  => 100000
-    //     ];
-
-    //     $item_details[] = [
-    //         'id' => '2-kdfkd',
-    //         'price' => 100000,
-    //         'quantity' => 1,
-    //         'name' => "Payment for dsds Camp"   
-    //     ];
-
-
-
-    //     $midtrans_params[] = [
-    //         'transaction_details' => $transcation_details,
-    //         'item_details'  =>  $item_details
-    //     ];
-
-    //     return $midtrans_params;
-    // }
+        return view('checkout.invoice',['checkout' => $checkout]);
+    }
 }
