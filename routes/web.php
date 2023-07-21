@@ -7,7 +7,7 @@ use App\Http\Controllers\User\HomeController;
 use App\Http\Controllers\User\DashboardController as UserDashboard;
 use App\Http\Controllers\Admin\DashboardController as AdminDashboard;
 use App\Http\Controllers\Admin\CheckoutController as AdminCheckout;
-
+use App\Http\Controllers\Admin\DiscountController as AdminDiscount;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -40,13 +40,13 @@ Route::middleware(['auth'])->group(function (){
     Route::get('/dashboard', [HomeController::class, 'dashboard'])->name('user.dashboard');
     // Route::get('/dashboard/checkout/invoice/{checkout}', [CheckoutController::class, 'invoice'])->name('user.checkout.invoice');
 
-    Route::prefix('/user')->namespace('user')->name('user.')->middleware('ensureUserRole:user')->group(function (){
+    Route::prefix('/user')->name('user.')->middleware('ensureUserRole:user')->group(function (){
         Route::get('/dashboard', [UserDashboard::class, 'index'])->name('dashboard');
     });
 
-    Route::prefix('/admin')->namespace('admin')->name('admin.')->middleware('ensureUserRole:admin')->group(function (){
+    Route::prefix('/admin')->name('admin.')->middleware('ensureUserRole:admin')->group(function (){
         Route::get('/dashboard', [AdminDashboard::class, 'index'])->name('dashboard');
-        Route::POST('/checkout/{checkout}', [AdminCheckout::class, 'setToPaid'])->name('checkout.setToPaid');
+        Route::resource('discount', AdminDiscount::class);
     });
 });
 

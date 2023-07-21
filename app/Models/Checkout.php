@@ -14,7 +14,7 @@ class Checkout extends Model
 
     
 
-    protected $fillable = ['user_id', 'camp_id','payment_status', 'midtrans_snap_token', 'midtrans_booking_code']; 
+    protected $fillable = ['user_id', 'camp_id','payment_status', 'midtrans_snap_token', 'midtrans_booking_code','discount_id','discount_percentage','total']; 
 
     // protected $fillable = ['user_id', 'camp_id', 'card_number', 'card_holder', 'expired', 'cvc', 'is_paid']; 
 
@@ -32,5 +32,9 @@ class Checkout extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function Discount(): BelongsTo
+    {
+        return $this->belongsTo(Discount::class);
+    }
 
 }

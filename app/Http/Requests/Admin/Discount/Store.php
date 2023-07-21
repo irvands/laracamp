@@ -1,10 +1,9 @@
 <?php
 
-namespace App\Http\Requests\User\Checkout;
+namespace App\Http\Requests\Admin\Discount;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Auth;
-
 class Store extends FormRequest
 {
     /**
@@ -14,7 +13,7 @@ class Store extends FormRequest
      */
     public function authorize()
     {
-        return Auth::check();
+        return Auth::check() && Auth::user()->is_admin;
     }
 
     /**
@@ -26,11 +25,9 @@ class Store extends FormRequest
     {
         return [
             'name' => 'required|string',
-            // 'email' => 'required|email|unique:users,email'.Auth::id().',id',
-            'occupation' => 'required|string',
-            'phone' => 'required|numeric|digits_between:11,15',
-            'address' => 'required|string',
-            'discount'  => 'nullable|string|exists:discounts,code,deleted_at,NULL',
+            'code' => 'required|string|max:5|unique:discounts',
+            'description' => 'nullable|string',
+            'percentage' => 'required|min:1|max:100|numeric',
         ];
     }
 }
