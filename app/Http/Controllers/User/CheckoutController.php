@@ -5,9 +5,10 @@ namespace App\Http\Controllers\User;
 use App\Http\Controllers\Controller;
 use App\Models\Checkout;
 use Illuminate\Http\Request;
-use App\Models\Camp;
 use App\Http\Requests\User\Checkout\Store;
 use App\Mail\Checkout\AfterCheckout;
+use App\Models\Camp;
+use App\Models\Discount;
 use Auth;
 use Mail;
 use Midtrans;
@@ -55,6 +56,13 @@ class CheckoutController extends Controller
         $data['user_id']    =   Auth::id();
         $data['camp_id']    =   $camp->id;
 
+        //cek apakah user memasukkan diskon
+        if($request->discount){
+            $discount = Discount::whereCode($request->discount)->first();
+            $data['discount_id'] = $discount->id;
+            $data['discount_percentage'] = $discount->percentage;
+        }
+
         //update data  user
         $user = Auth::user();
         // return $data['email'];
@@ -63,13 +71,10 @@ class CheckoutController extends Controller
         $user->occupation = $data['occupation'];
         $user->save();
 
-        
-
         //store data checkout
         $checkout  = Checkout::create($data);
+  
         $this->getSnapToken($checkout);
-        
-        
         
         Mail::to(Auth::user()->email)->send(new AfterCheckout($checkout));
 
@@ -110,16 +115,28 @@ class CheckoutController extends Controller
 
         $checkout->midtrans_booking_code = $orderID;
 
-        $transcation_details = [
-            'order_id' => $orderID,
-            'gross_amount'  => $price
-        ];
-
         $item_details[] = [
             'id' => $orderID,
             'price' => $price,
             'quantity' => 1,
             'name' => "Payment for {$checkout->Camp->title} Camp"   
+        ];
+
+        $discountPrice = 0;
+        if($checkout->Discount){
+            $discountPrice = $price * $checkout->discount_percentage / 100;
+            $item_details[] = [
+                'id' => $checkout->Discount->code,
+                'price' => -$discountPrice,
+                'quantity' => 1,
+                'name' => "Discount {$checkout->Discount->name}({$checkout->discount_percentage}%)"   
+            ];
+        }
+
+        $total = $price - $discountPrice;
+        $transcation_details = [
+            'order_id' => $orderID,
+            'gross_amount'  => $total
         ];
 
         $userData = [
@@ -153,9 +170,8 @@ class CheckoutController extends Controller
 
             $snapToken = \Midtrans\Snap::getSnapToken($midtrans_params);
             $checkout->midtrans_snap_token = $snapToken;
+            $checkout->total = $total;
             $checkout->save();
-
-            return $snapToken;
 
         } catch (Exception $e) {
             return false;
