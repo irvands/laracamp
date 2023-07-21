@@ -4,24 +4,24 @@
 <div class="container">
     <div class="row">
         <div class="col-8 offset-2">
-            <div class="card">
-                <div class="card-healer">
-                    My Camps
+            <div class="card mt-3">
+                <div class="card-header">
+                    All registered Camp
                 </div>
 
-                <div class="card body">
+                <div class="card-body">
                     @include('components.alert')
 
                     <table class="table table-responsive">
                         @include('components.alert')
                         <thead>
                             <tr>
-                                <td>User</td>
-                                <td>Camp</td>
-                                <td>Price</td>
-                                <td>Register Data</td>
-                                <td>Paid Status</td>
-                                <td>Action</td>
+                                <th>User</th>
+                                <th>Camp</th>
+                                <th>Price</th>
+                                <th>Register Data</th>
+                                <th>Paid Status</th>
+                               
                             </tr>
                         </thead>
 
@@ -30,23 +30,19 @@
                             <tr>
                                 <td>{{$checkout->User->name}}</td>
                                 <td>{{$checkout->Camp->title}}</td>
-                                <td>{{$checkout->Camp->price}}K</td>
+                                <td>
+                                <strong>Rp.{{$checkout->total}}</strong>
+                                @if($checkout->discount_id)
+                                    <span class="badge bg-success">{{$checkout->discount_percentage}}%</span>
+                                @endif
+                            </td>
                                 <td>{{$checkout->created_at->format('M d Y')}}</td>
                                 <td>
-                                    @if(!$checkout->is_paid)
-                                    <span class="badge bg-warning">Waiting</span>
+                                    @if($checkout->payment_status == 'paid')
+                                    <span class="badge bg-success">Paid</span>
                                     @else
-                                   <span class="badge bg-success">Paid</span>
+                                   <span class="badge bg-warning">Waiting</span>
                                     @endif
-                                </td>
-                                <td>
-                                    @if(!$checkout->is_paid)
-                                    <form action="{{route('admin.checkout.setToPaid', $checkout->id)}}" method="POST">
-                                        @csrf
-                                        <button class="btn btn-primary btn-sm">Set to paid</button>
-                                    </form>
-                                    @endif
-                                    
                                 </td>
                             </tr>
                             @empty
