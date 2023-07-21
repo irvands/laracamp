@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Discount;
 use Illuminate\Http\Request;
 use App\Http\Requests\Admin\Discount\Store;
+use App\Http\Requests\Admin\Discount\Update;
 
 class DiscountController extends Controller
 {
@@ -16,7 +17,10 @@ class DiscountController extends Controller
      */
     public function index()
     {
-       return view('admin.discount.index');
+        $discounts = Discount::all();
+        return view('admin.discount.index', [
+            'discounts' => $discounts
+        ]);
     }
 
     /**
@@ -37,7 +41,11 @@ class DiscountController extends Controller
      */
     public function store(Store $request)
     {
-        return $request->all();
+        $discount = Discount::create($request->all());
+        $request->session()->flash('success', 'A new discount has been created!');
+
+        return redirect(route('admin.discount.index'));
+
     }
 
     /**
@@ -59,7 +67,8 @@ class DiscountController extends Controller
      */
     public function edit(Discount $discount)
     {
-        //
+        // return $discount;
+        return view('admin.discount.edit', ['discount' => $discount]);
     }
 
     /**
@@ -69,9 +78,12 @@ class DiscountController extends Controller
      * @param  \App\Models\Discount  $discount
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Discount $discount)
+    public function update(Update $request, Discount $discount)
     {
-        //
+        // return $request->all();
+        $discount->update($request->all());
+        $request->session()->flash('success', "Discount has been updated!");
+        return redirect(route('admin.discount.index'));
     }
 
     /**
@@ -80,8 +92,10 @@ class DiscountController extends Controller
      * @param  \App\Models\Discount  $discount
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Discount $discount)
+    public function destroy(Request $request, Discount $discount)
     {
-        //
+        $discount->delete();
+        $request->session()->flash('error', "Discount has been deleted!");
+        return redirect(route('admin.discount.index'));
     }
 }
